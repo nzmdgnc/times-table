@@ -121,6 +121,52 @@
     margin: 0 2px;
   }
 
+  .level-select {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 0 40px;
+  }
+
+  .level {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 14px 8px 12px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    transition: transform 80ms ease, box-shadow 80ms ease, background 120ms ease, color 120ms ease;
+  }
+  .level:active {
+    transform: translateY(3px);
+    box-shadow: var(--shadow-pressed);
+  }
+  .level.selected {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .level-letter {
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1;
+  }
+  .level-time {
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+
   /* ─── Game screen ───────────────────────────── */
   #game { gap: 16px; }
 
@@ -405,9 +451,22 @@
     <div class="start-eyebrow">Kleines Einmaleins</div>
     <h1 class="start-title">1<span class="x">×</span>1</h1>
     <p class="start-info">
-      <strong>15 Aufgaben</strong> · <strong>60 Sekunden</strong><br>
-      Zahlen <span class="pill">2</span> bis <span class="pill">10</span>
+      <strong>15 Aufgaben</strong> · Zahlen <span class="pill">2</span> bis <span class="pill">10</span>
     </p>
+    <div class="level-select" id="level-select" role="radiogroup" aria-label="Niveaustufe">
+      <button class="level" data-level="G" role="radio" aria-checked="false">
+        <span class="level-letter">G</span>
+        <span class="level-time">1:20</span>
+      </button>
+      <button class="level selected" data-level="M" role="radio" aria-checked="true">
+        <span class="level-letter">M</span>
+        <span class="level-time">1:00</span>
+      </button>
+      <button class="level" data-level="E" role="radio" aria-checked="false">
+        <span class="level-letter">E</span>
+        <span class="level-time">0:40</span>
+      </button>
+    </div>
     <button class="btn" id="btn-start">Neu</button>
   </div>
 
@@ -454,9 +513,10 @@
 </div>
 
 <script>
-  const TOTAL_TIME = 60;
+  const TIME_BY_LEVEL = { G: 80, M: 60, E: 40 };
   const TOTAL_PROBLEMS = 15;
   const $ = (sel) => document.querySelector(sel);
+  let currentLevel = 'M';
   let state = null;
 
   function generateProblems() {
@@ -486,7 +546,8 @@
       startTime: performance.now(),
       timerInterval: null,
       finished: false,
-      locked: false
+      locked: false,
+      totalTime: TIME_BY_LEVEL[currentLevel]
     };
     $('#timer-bar').classList.remove('warn');
     $('#timer-text').classList.remove('warn');
@@ -500,8 +561,8 @@
   function updateTimer() {
     if (!state || state.finished) return;
     const elapsed = (performance.now() - state.startTime) / 1000;
-    const remaining = Math.max(0, TOTAL_TIME - elapsed);
-    const pct = (remaining / TOTAL_TIME) * 100;
+    const remaining = Math.max(0, state.totalTime - elapsed);
+    const pct = (remaining / state.totalTime) * 100;
     $('#timer-bar').style.width = pct + '%';
     $('#timer-text').textContent = Math.ceil(remaining);
 
@@ -583,7 +644,7 @@
     const correctCount = state.problems.filter(p => p.correct === true).length;
     const wrongCount = state.problems.filter(p => p.correct === false).length;
     const skippedCount = state.problems.filter(p => p.correct === null).length;
-    const elapsed = Math.min(TOTAL_TIME, (performance.now() - state.startTime) / 1000);
+    const elapsed = Math.min(state.totalTime, (performance.now() - state.startTime) / 1000);
 
     let eyebrow = 'Test beendet';
     if (timeUp) eyebrow = 'Zeit abgelaufen';
@@ -641,6 +702,17 @@
   // Events
   $('#btn-start').addEventListener('click', startGame);
   $('#btn-restart').addEventListener('click', startGame);
+
+  $('#level-select').addEventListener('click', (e) => {
+    const btn = e.target.closest('.level');
+    if (!btn) return;
+    currentLevel = btn.dataset.level;
+    document.querySelectorAll('#level-select .level').forEach(b => {
+      const sel = b.dataset.level === currentLevel;
+      b.classList.toggle('selected', sel);
+      b.setAttribute('aria-checked', sel ? 'true' : 'false');
+    });
+  });
 
   $('#numpad').addEventListener('click', (e) => {
     const btn = e.target.closest('.key');
