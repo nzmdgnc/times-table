@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f4ebd9">
+<title>1×1 Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #f4ebd9;
+    --bg-2: #ede2cc;
+    --paper: #fefcf7;
+    --ink: #16191f;
+    --ink-soft: #5a5d68;
+    --accent: #e63946;
+    --good: #2d6a4f;
+    --good-light: #d8f3dc;
+    --bad: #c1121f;
+    --bad-light: #ffd6d6;
+    --shadow: 0 4px 0 var(--ink);
+    --shadow-pressed: 0 1px 0 var(--ink);
+    --shadow-lg: 0 6px 0 var(--ink);
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(230,57,70,0.04) 0, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(22,25,31,0.04) 0, transparent 40%);
+  }
+
+  #app {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    position: relative;
+  }
+
+  .screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .screen[hidden] { display: none; }
+
+  /* ─── Start screen ─────────────────────────── */
+  #start {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .start-eyebrow {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .start-title {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144;
+    font-weight: 900;
+    font-size: clamp(96px, 28vw, 180px);
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    margin-bottom: 24px;
+  }
+
+  .start-title .x {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .start-info {
+    font-size: 17px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin-bottom: 48px;
+  }
+
+  .start-info strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .start-info .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: var(--paper);
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 14px;
+    margin: 0 2px;
+  }
+
+  /* ─── Game screen ───────────────────────────── */
+  #game { gap: 16px; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 4px 0;
+  }
+
+  .progress {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+    min-width: 64px;
+  }
+  .progress-num { color: var(--accent); }
+  .progress-of { color: var(--ink-soft); }
+
+  .timer-wrap {
+    flex: 1;
+    height: 14px;
+    background: var(--bg-2);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .timer-bar {
+    height: 100%;
+    background: var(--ink);
+    width: 100%;
+    transition: width 100ms linear, background 200ms ease;
+  }
+  .timer-bar.warn { background: var(--accent); }
+
+  .timer-text {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 20px;
+    min-width: 38px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-text.warn { color: var(--accent); }
+
+  .problem-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    min-height: 0;
+  }
+
+  .problem {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144;
+    font-weight: 800;
+    font-size: clamp(64px, 18vw, 110px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-align: center;
+    will-change: transform;
+  }
+
+  .problem .op {
+    color: var(--accent);
+    margin: 0 0.08em;
+    font-style: italic;
+  }
+
+  .problem.flash-good { animation: flashGood 450ms ease; }
+  .problem.flash-bad  { animation: flashBad 500ms ease; }
+
+  @keyframes flashGood {
+    0%, 100% { color: var(--ink); transform: scale(1); }
+    40%      { color: var(--good); transform: scale(1.06); }
+  }
+  @keyframes flashBad {
+    0%, 100% { transform: translateX(0); color: var(--ink); }
+    20%      { transform: translateX(-10px); color: var(--bad); }
+    40%      { transform: translateX(10px); }
+    60%      { transform: translateX(-7px); }
+    80%      { transform: translateX(7px); }
+  }
+
+  .input-display {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 1;
+    height: 84px;
+    min-width: 180px;
+    padding: 0 28px;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .input-display.empty::after {
+    content: '_';
+    color: var(--ink-soft);
+    opacity: 0.4;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink { 0%, 50% { opacity: 0.4; } 51%, 100% { opacity: 0; } }
+
+  /* ─── Numpad ────────────────────────────────── */
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .key {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 32px;
+    height: 64px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+    font-variant-numeric: tabular-nums;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .key:active {
+    transform: translateY(3px);
+    box-shadow: var(--shadow-pressed);
+  }
+  .key.action {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.05em;
+  }
+  .key.back { background: var(--bg-2); }
+  .key.ok   { background: var(--accent); color: white; }
+
+  /* ─── Big primary button ────────────────────── */
+  .btn {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 30px;
+    letter-spacing: 0.04em;
+    padding: 20px 56px;
+    background: var(--accent);
+    color: white;
+    border: 3px solid var(--ink);
+    border-radius: 18px;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: transform 100ms ease, box-shadow 100ms ease;
+    text-transform: uppercase;
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 var(--ink);
+  }
+
+  /* ─── Results ───────────────────────────────── */
+  #results {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .results-header {
+    text-align: center;
+    padding: 16px 0 8px;
+  }
+
+  .results-eyebrow {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .results-score {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144;
+    font-weight: 900;
+    font-size: clamp(88px, 26vw, 150px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+  }
+  .results-score .of { color: var(--ink-soft); font-weight: 600; }
+  .results-score.good { color: var(--good); }
+  .results-score.mid  { color: var(--accent); }
+
+  .results-meta {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .results-meta strong { color: var(--ink); font-weight: 700; }
+
+  .results-list {
+    margin: 24px 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .results-list-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    padding: 0 4px;
+  }
+
+  .result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 19px;
+    font-variant-numeric: tabular-nums;
+  }
+  .result-item.correct { background: var(--good-light); }
+  .result-item.wrong   { background: var(--bad-light); }
+  .result-item.skipped { background: var(--bg-2); }
+
+  .result-item .your {
+    font-size: 13px;
+    color: var(--bad);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    margin-left: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .result-item .icon {
+    font-size: 20px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .result-item.correct .icon { color: var(--good); }
+  .result-item.wrong .icon   { color: var(--bad); }
+  .result-item.skipped .icon { color: var(--ink-soft); }
+
+  .results-footer {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 16px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Start screen -->
+  <div id="start" class="screen">
+    <div class="start-eyebrow">Kleines Einmaleins</div>
+    <h1 class="start-title">1<span class="x">×</span>1</h1>
+    <p class="start-info">
+      <strong>15 Aufgaben</strong> · <strong>60 Sekunden</strong><br>
+      Zahlen <span class="pill">2</span> bis <span class="pill">10</span>
+    </p>
+    <button class="btn" id="btn-start">Neu</button>
+  </div>
+
+  <!-- Game screen -->
+  <div id="game" class="screen" hidden>
+    <div class="topbar">
+      <div class="progress"><span class="progress-num" id="prog-cur">1</span><span class="progress-of">/15</span></div>
+      <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+      <div class="timer-text" id="timer-text">60</div>
+    </div>
+    <div class="problem-area">
+      <div class="problem" id="problem"></div>
+      <div class="input-display empty" id="input"></div>
+    </div>
+    <div class="numpad" id="numpad">
+      <button class="key" data-k="1">1</button>
+      <button class="key" data-k="2">2</button>
+      <button class="key" data-k="3">3</button>
+      <button class="key" data-k="4">4</button>
+      <button class="key" data-k="5">5</button>
+      <button class="key" data-k="6">6</button>
+      <button class="key" data-k="7">7</button>
+      <button class="key" data-k="8">8</button>
+      <button class="key" data-k="9">9</button>
+      <button class="key action back" data-k="back" aria-label="Löschen">⌫</button>
+      <button class="key" data-k="0">0</button>
+      <button class="key action ok" data-k="ok">OK</button>
+    </div>
+  </div>
+
+  <!-- Results screen -->
+  <div id="results" class="screen" hidden>
+    <div class="results-header">
+      <div class="results-eyebrow" id="r-eyebrow">Test beendet</div>
+      <div class="results-score" id="r-score">0<span class="of">/15</span></div>
+      <div class="results-meta" id="r-meta"></div>
+    </div>
+    <div class="results-list" id="r-list"></div>
+    <div class="results-footer">
+      <button class="btn" id="btn-restart">Neu</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL_TIME = 60;
+  const TOTAL_PROBLEMS = 15;
+  const $ = (sel) => document.querySelector(sel);
+  let state = null;
+
+  function generateProblems() {
+    const problems = [];
+    const seen = new Set();
+    while (problems.length < TOTAL_PROBLEMS) {
+      const a = Math.floor(Math.random() * 9) + 2; // 2..10
+      const b = Math.floor(Math.random() * 9) + 2;
+      const key = `${a}×${b}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        problems.push({ a, b, answer: a * b, userAnswer: null, correct: null });
+      }
+    }
+    return problems;
+  }
+
+  function showScreen(name) {
+    ['start', 'game', 'results'].forEach(s => { $('#' + s).hidden = (s !== name); });
+  }
+
+  function startGame() {
+    state = {
+      problems: generateProblems(),
+      currentIdx: 0,
+      input: '',
+      startTime: performance.now(),
+      timerInterval: null,
+      finished: false,
+      locked: false
+    };
+    $('#timer-bar').classList.remove('warn');
+    $('#timer-text').classList.remove('warn');
+    $('#timer-bar').style.width = '100%';
+    showScreen('game');
+    renderProblem();
+    state.timerInterval = setInterval(updateTimer, 100);
+    updateTimer();
+  }
+
+  function updateTimer() {
+    if (!state || state.finished) return;
+    const elapsed = (performance.now() - state.startTime) / 1000;
+    const remaining = Math.max(0, TOTAL_TIME - elapsed);
+    const pct = (remaining / TOTAL_TIME) * 100;
+    $('#timer-bar').style.width = pct + '%';
+    $('#timer-text').textContent = Math.ceil(remaining);
+
+    if (remaining <= 10) {
+      $('#timer-bar').classList.add('warn');
+      $('#timer-text').classList.add('warn');
+    }
+    if (remaining <= 0) finishGame(true);
+  }
+
+  function renderProblem() {
+    const p = state.problems[state.currentIdx];
+    const probEl = $('#problem');
+    probEl.classList.remove('flash-good', 'flash-bad');
+    probEl.innerHTML = `${p.a} <span class="op">×</span> ${p.b}`;
+    $('#prog-cur').textContent = state.currentIdx + 1;
+    state.input = '';
+    state.locked = false;
+    updateInputDisplay();
+  }
+
+  function updateInputDisplay() {
+    const el = $('#input');
+    if (state.input.length === 0) {
+      el.classList.add('empty');
+      el.textContent = '';
+    } else {
+      el.classList.remove('empty');
+      el.textContent = state.input;
+    }
+  }
+
+  function pressKey(k) {
+    if (!state || state.finished || state.locked) return;
+    if (k === 'back') {
+      state.input = state.input.slice(0, -1);
+      updateInputDisplay();
+    } else if (k === 'ok') {
+      submitAnswer();
+    } else {
+      if (state.input.length >= 3) return;
+      if (state.input === '' && k === '0') return;
+      state.input += k;
+      updateInputDisplay();
+    }
+  }
+
+  function submitAnswer() {
+    if (state.input === '') return;
+    const p = state.problems[state.currentIdx];
+    const ua = parseInt(state.input, 10);
+    p.userAnswer = ua;
+    p.correct = (ua === p.answer);
+    state.locked = true;
+
+    const probEl = $('#problem');
+    probEl.classList.remove('flash-good', 'flash-bad');
+    void probEl.offsetWidth;
+    probEl.classList.add(p.correct ? 'flash-good' : 'flash-bad');
+
+    if (navigator.vibrate) navigator.vibrate(p.correct ? 25 : [50, 40, 50]);
+
+    setTimeout(() => {
+      if (!state || state.finished) return;
+      if (state.currentIdx + 1 >= TOTAL_PROBLEMS) {
+        finishGame(false);
+      } else {
+        state.currentIdx++;
+        renderProblem();
+      }
+    }, p.correct ? 280 : 480);
+  }
+
+  function finishGame(timeUp) {
+    if (!state || state.finished) return;
+    state.finished = true;
+    clearInterval(state.timerInterval);
+
+    const correctCount = state.problems.filter(p => p.correct === true).length;
+    const wrongCount = state.problems.filter(p => p.correct === false).length;
+    const skippedCount = state.problems.filter(p => p.correct === null).length;
+    const elapsed = Math.min(TOTAL_TIME, (performance.now() - state.startTime) / 1000);
+
+    let eyebrow = 'Test beendet';
+    if (timeUp) eyebrow = 'Zeit abgelaufen';
+    else if (correctCount === TOTAL_PROBLEMS) eyebrow = 'Perfekt!';
+    else if (correctCount >= 13) eyebrow = 'Sehr gut!';
+    else if (correctCount >= 10) eyebrow = 'Gut gemacht';
+    else if (correctCount >= 7)  eyebrow = 'Weiter üben';
+    $('#r-eyebrow').textContent = eyebrow;
+
+    const scoreEl = $('#r-score');
+    scoreEl.innerHTML = `${correctCount}<span class="of">/${TOTAL_PROBLEMS}</span>`;
+    scoreEl.classList.remove('good', 'mid');
+    if (correctCount === TOTAL_PROBLEMS) scoreEl.classList.add('good');
+    else if (correctCount >= 10) scoreEl.classList.add('mid');
+
+    const elapsedSec = Math.round(elapsed);
+    let metaParts = [`<strong>${elapsedSec}s</strong>`];
+    if (wrongCount > 0)   metaParts.push(`${wrongCount} falsch`);
+    if (skippedCount > 0) metaParts.push(`${skippedCount} übersprungen`);
+    $('#r-meta').innerHTML = metaParts.join(' · ');
+
+    const listEl = $('#r-list');
+    listEl.innerHTML = '';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'results-list-title';
+    titleEl.textContent = 'Übersicht';
+    listEl.appendChild(titleEl);
+
+    state.problems.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      let icon = '', extra = '';
+      if (p.correct === true) {
+        item.classList.add('correct');
+        icon = '✓';
+      } else if (p.correct === false) {
+        item.classList.add('wrong');
+        icon = '✗';
+        extra = `<span class="your">deine: ${p.userAnswer}</span>`;
+      } else {
+        item.classList.add('skipped');
+        icon = '—';
+      }
+      item.innerHTML = `
+        <span>${p.a} × ${p.b} = ${p.answer}${extra}</span>
+        <span class="icon">${icon}</span>
+      `;
+      listEl.appendChild(item);
+    });
+
+    showScreen('results');
+    $('#results').scrollTop = 0;
+  }
+
+  // Events
+  $('#btn-start').addEventListener('click', startGame);
+  $('#btn-restart').addEventListener('click', startGame);
+
+  $('#numpad').addEventListener('click', (e) => {
+    const btn = e.target.closest('.key');
+    if (!btn) return;
+    pressKey(btn.dataset.k);
+  });
+
+  // Keyboard support (desktop)
+  document.addEventListener('keydown', (e) => {
+    if (!$('#game').hidden) {
+      if (e.key >= '0' && e.key <= '9') pressKey(e.key);
+      else if (e.key === 'Backspace') pressKey('back');
+      else if (e.key === 'Enter') pressKey('ok');
+    } else {
+      if (e.key === 'Enter') startGame();
+    }
+  });
+
+  // Prevent double-tap zoom
+  document.addEventListener('dblclick', (e) => e.preventDefault());
+
+  showScreen('start');
+</script>
+</body>
+</html>
