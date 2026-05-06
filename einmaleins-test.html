@@ -519,20 +519,39 @@
   let currentLevel = 'M';
   let state = null;
 
+  const MUL_COUNT = 8;
+  const DIV_COUNT = TOTAL_PROBLEMS - MUL_COUNT;
+  const rand2to10 = () => Math.floor(Math.random() * 9) + 2;
+
   function generateProblems() {
     const problems = [];
     const seen = new Set();
-    while (problems.length < TOTAL_PROBLEMS) {
-      const a = Math.floor(Math.random() * 9) + 2; // 2..10
-      const b = Math.floor(Math.random() * 9) + 2;
-      const key = `${a}×${b}`;
+
+    while (problems.length < MUL_COUNT) {
+      const a = rand2to10();
+      const b = rand2to10();
+      const key = `mul:${a}×${b}`;
       if (!seen.has(key)) {
         seen.add(key);
-        problems.push({ a, b, answer: a * b, userAnswer: null, correct: null });
+        problems.push({ op: 'mul', a, b, answer: a * b, userAnswer: null, correct: null });
       }
     }
+
+    while (problems.length < MUL_COUNT + DIV_COUNT) {
+      const q = rand2to10();
+      const d = rand2to10();
+      const dividend = q * d;
+      const key = `div:${dividend}÷${d}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        problems.push({ op: 'div', a: dividend, b: d, answer: q, userAnswer: null, correct: null });
+      }
+    }
+
     return problems;
   }
+
+  function opSign(p) { return p.op === 'div' ? '÷' : '×'; }
 
   function showScreen(name) {
     ['start', 'game', 'results'].forEach(s => { $('#' + s).hidden = (s !== name); });
@@ -577,7 +596,7 @@
     const p = state.problems[state.currentIdx];
     const probEl = $('#problem');
     probEl.classList.remove('flash-good', 'flash-bad');
-    probEl.innerHTML = `${p.a} <span class="op">×</span> ${p.b}`;
+    probEl.innerHTML = `${p.a} <span class="op">${opSign(p)}</span> ${p.b}`;
     $('#prog-cur').textContent = state.currentIdx + 1;
     state.input = '';
     state.locked = false;
@@ -689,7 +708,7 @@
         icon = '—';
       }
       item.innerHTML = `
-        <span>${p.a} × ${p.b} = ${p.answer}${extra}</span>
+        <span>${p.a} ${opSign(p)} ${p.b} = ${p.answer}${extra}</span>
         <span class="icon">${icon}</span>
       `;
       listEl.appendChild(item);
